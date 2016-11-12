@@ -8,14 +8,13 @@ HANDLE arduino;
 
 void main(void){
 	BYTE data = 1;
-
-
+	/*
 	//----------受信----------------
 	//----------受信----------------
 	//----------受信----------------
 	setlocale(LC_ALL, "japanese");
 	//1.ポートをオープン
-	arduino = CreateFile("COM5", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	arduino = CreateFile("COM3", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	//2014/01/22追記　これでつながらない場合には"\\\\.\\COM7"とするとつながるかもしれません。
 
 	if (arduino == INVALID_HANDLE_VALUE){
@@ -56,11 +55,11 @@ void main(void){
 	}
 	//3.5受信
 	
-	DWORD dwErrors;  /* エラー情報 */
-	COMSTAT ComStat; /* デバイスの状態 */
-	DWORD dwCount;   /* 受信データのバイト数 */
-	char* pszBuf[100];    /* 読み出しデータバッファ */
-	DWORD dwRead;    /* ポートから読み出したバイト数 */
+	DWORD dwErrors;  // エラー情報 
+	COMSTAT ComStat; // デバイスの状態 
+	DWORD dwCount;   // 受信データのバイト数 
+	char* pszBuf[100];    // 読み出しデータバッファ 
+	DWORD dwRead;    // ポートから読み出したバイト数 
 
 	while (1){
 	ClearCommError(arduino, &dwErrors, &ComStat);
@@ -69,7 +68,7 @@ void main(void){
 	printf("%s\n",pszBuf);
 	}
 
-	/*
+	*/
 	//----------送信----------------
 	//----------送信----------------
 	//----------送信----------------
@@ -106,7 +105,7 @@ void main(void){
 	dcb.fParity = NOPARITY;
 	dcb.StopBits = ONESTOPBIT;
 
-	Ret = SetCommState(arduino, &dcb);
+	Ret = SetCommState(arduino, &dcb); 
 	if (!Ret){
 		printf("SetCommState FAILED\n");
 		CloseHandle(arduino);
@@ -116,16 +115,20 @@ void main(void){
 	//4.送信
 	DWORD dwSendSize;
 	DWORD dwErrorMask;
+	int num = 1; //シーケンス番号
+	int lPwm = 16, rPwm = 32; // 左右のpwm
+	int buf[] = { num, lPwm, rPwm }; //送信するデータの配列
 
-	Ret = WriteFile(arduino, &data, sizeof(data), &dwSendSize, NULL);
+	Ret = WriteFile(arduino, buf, sizeof(buf), &dwSendSize, NULL);
 	if (!Ret){
 		printf("SEND FAILED\n");
 		CloseHandle(arduino);
 		system("PAUSE");
 		exit(0);
 	}
-	printf("FINISH\n");
+	printf("FINISH num:%d left:%d right:%d\n", buf[0], buf[1], buf[2]);
 	CloseHandle(arduino);
 	system("PAUSE");
-	*/
+
+
 }
