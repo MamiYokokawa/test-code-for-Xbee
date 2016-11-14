@@ -2,9 +2,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include < locale.h >
+#include <iostream>
 
 bool Ret;
 HANDLE arduino;
+
+byte const robotAddr[] = { byte(0x00), byte(0x13), byte(0xA2), byte(0x00), byte(0x40), byte(0x99), byte(0x37), byte(0x7A) };
+byte const A = byte(0x41), B = byte(0x42), C = byte(0x43), D = byte(0x44), E = byte(0x45), F = byte(0x46),
+G = byte(0x47), H = byte(0x48), I = byte(0x49), J = byte(0x4a), K = byte(0x4b), L = byte(0x4c),
+M = byte(0x4d), N = byte(0x4e), O = byte(0x4f), P = byte(0x50), Q = byte(0x51), R = byte(0x52),
+S = byte(0x53), T = byte(0x54), U = byte(0x55), V = byte(0x56), W = byte(0x57), X = byte(0x58),
+Y = byte(0x59), Z = byte(0x5a);
 
 void main(void){
 	BYTE data = 1;
@@ -72,6 +80,7 @@ void main(void){
 	//----------送信----------------
 	//----------送信----------------
 	//----------送信----------------
+
 	//1.ポートをオープン
 	arduino = CreateFile("COM5", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	//2014/01/22追記　これでつながらない場合には"\\\\.\\COM7"とするとつながるかもしれません。
@@ -81,54 +90,120 @@ void main(void){
 		system("PAUSE");
 		exit(0);
 	}
-	//2.送受信バッファ初期化
-	Ret = SetupComm(arduino, 1024, 1024);
-	if (!Ret){
-		printf("SET UP FAILED\n");
+
+	while (1){
+		//2.送受信バッファ初期化
+		Ret = SetupComm(arduino, 1024, 1024);
+		if (!Ret){
+			printf("SET UP FAILED\n");
+			CloseHandle(arduino);
+			system("PAUSE");
+			exit(0);
+		}
+		Ret = PurgeComm(arduino, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+		if (!Ret){
+			printf("CLEAR FAILED\n");
+			CloseHandle(arduino);
+			exit(0);
+		}
+
+		//3.基本通信条件の設定
+		DCB dcb;
+		GetCommState(arduino, &dcb);
+		dcb.DCBlength = sizeof(DCB);
+		dcb.BaudRate = 57600;
+		dcb.fBinary = TRUE;
+		dcb.ByteSize = 8;
+		dcb.fParity = NOPARITY;
+		dcb.StopBits = ONESTOPBIT;
+
+		Ret = SetCommState(arduino, &dcb);
+		if (!Ret){
+			printf("SetCommState FAILED\n");
+			CloseHandle(arduino);
+			system("PAUSE");
+			exit(0);
+		}
+		//4.送信
+		DWORD dwSendSize;
+		DWORD dwErrorMask;
+		int num = 1; //シーケンス番号
+		byte lPwm = 127, rPwm = 127; // 左右のpwm
+		//int buf[] = { num, lPwm, rPwm }; //送信するデータの配列
+
+		char id = A;
+		int checksum = 0;
+		int command;
+
+		std::cin >> command;
+
+		// stop command
+
+		if (command == 0){
+			byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
+				robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
+				robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
+				byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
+				M, F, A, T, A, L, byte(0x00), byte(lPwm), R, byte(0x00), byte(rPwm), A, G, E, byte(0x00) };
+
+			for (int i = 3; i < 34; i++){
+				checksum += requestPacket[i];
+			}
+			checksum = 0xFF - (checksum & 0x00FF);
+
+			requestPacket[34] = byte(checksum);
+			Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
+			std::cout << "stop";
+		}
+
+		// go forward command
+
+		if (command == 1){
+			byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
+				robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
+				robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
+				byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
+				M, F, A, T, A, L, byte(0x01), byte(lPwm), R, byte(0x01), byte(rPwm), A, G, E, byte(0x00) };
+
+			for (int i = 3; i < 34; i++){
+				checksum += requestPacket[i];
+			}
+			checksum = 0xFF - (checksum & 0x00FF);
+
+			requestPacket[34] = byte(checksum);
+			Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
+			std::cout << "go forward";
+		}
+
+		// go back command
+
+		if (command == 2){
+			byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
+				robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
+				robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
+				byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
+				M, F, A, T, A, L, byte(0x02), byte(lPwm), R, byte(0x02), byte(rPwm), A, G, E, byte(0x00) };
+
+			for (int i = 3; i < 34; i++){
+				checksum += requestPacket[i];
+			}
+			checksum = 0xFF - (checksum & 0x00FF);
+
+			requestPacket[34] = byte(checksum);
+			Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
+			std::cout << "go back";
+		}
+
+		if (!Ret){
+			printf("SEND FAILED\n");
+			CloseHandle(arduino);
+			system("PAUSE");
+			exit(0);
+		}
+
+	}
+	//	printf("FINISH\n");
 		CloseHandle(arduino);
 		system("PAUSE");
-		exit(0);
-	}
-	Ret = PurgeComm(arduino, PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
-	if (!Ret){
-		printf("CLEAR FAILED\n");
-		CloseHandle(arduino);
-		exit(0);
-	}
-	//3.基本通信条件の設定
-	DCB dcb;
-	GetCommState(arduino, &dcb);
-	dcb.DCBlength = sizeof(DCB);
-	dcb.BaudRate = 57600;
-	dcb.fBinary = TRUE;
-	dcb.ByteSize = 8;
-	dcb.fParity = NOPARITY;
-	dcb.StopBits = ONESTOPBIT;
-
-	Ret = SetCommState(arduino, &dcb); 
-	if (!Ret){
-		printf("SetCommState FAILED\n");
-		CloseHandle(arduino);
-		system("PAUSE");
-		exit(0);
-	}	
-	//4.送信
-	DWORD dwSendSize;
-	DWORD dwErrorMask;
-	int num = 1; //シーケンス番号
-	int lPwm = 16, rPwm = 32; // 左右のpwm
-	int buf[] = { num, lPwm, rPwm }; //送信するデータの配列
-
-	Ret = WriteFile(arduino, buf, sizeof(buf), &dwSendSize, NULL);
-	if (!Ret){
-		printf("SEND FAILED\n");
-		CloseHandle(arduino);
-		system("PAUSE");
-		exit(0);
-	}
-	printf("FINISH num:%d left:%d right:%d\n", buf[0], buf[1], buf[2]);
-	CloseHandle(arduino);
-	system("PAUSE");
-
 
 }
