@@ -14,6 +14,39 @@ M = byte(0x4d), N = byte(0x4e), O = byte(0x4f), P = byte(0x50), Q = byte(0x51), 
 S = byte(0x53), T = byte(0x54), U = byte(0x55), V = byte(0x56), W = byte(0x57), X = byte(0x58),
 Y = byte(0x59), Z = byte(0x5a);
 
+//パケット作成・送信
+
+void sentPacket(int command){
+
+	DWORD dwSendSize;
+	DWORD dwErrorMask;
+	int num = 1; //シーケンス番号
+	byte lPwm = 127, rPwm = 127; // 左右のpwm
+	int checksum = 0;
+
+	byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
+		robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
+		robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
+		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
+		M, F, A, T, A, L, byte(command), byte(lPwm), R, byte(command), byte(rPwm), A, G, E, byte(0x00) };
+
+	for (int i = 3; i < 34; i++){
+		checksum += requestPacket[i];
+	}
+	checksum = 0xFF - (checksum & 0x00FF);
+
+	requestPacket[34] = byte(checksum);
+	Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
+
+	if (!Ret){
+		printf("SEND FAILED\n");
+		CloseHandle(arduino);
+		system("PAUSE");
+		exit(0);
+	}
+
+}
+
 void main(void){
 	BYTE data = 1;
 	/*
@@ -125,81 +158,11 @@ void main(void){
 			exit(0);
 		}
 		//4.送信
-		DWORD dwSendSize;
-		DWORD dwErrorMask;
-		int num = 1; //シーケンス番号
-		byte lPwm = 127, rPwm = 127; // 左右のpwm
-		//int buf[] = { num, lPwm, rPwm }; //送信するデータの配列
-
 		char id = A;
-		int checksum = 0;
 		int command;
 
 		std::cin >> command;
-
-		// stop command
-
-		if (command == 0){
-			byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
-				robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
-				robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
-				byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
-				M, F, A, T, A, L, byte(0x00), byte(lPwm), R, byte(0x00), byte(rPwm), A, G, E, byte(0x00) };
-
-			for (int i = 3; i < 34; i++){
-				checksum += requestPacket[i];
-			}
-			checksum = 0xFF - (checksum & 0x00FF);
-
-			requestPacket[34] = byte(checksum);
-			Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
-			std::cout << "stop";
-		}
-
-		// go forward command
-
-		if (command == 1){
-			byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
-				robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
-				robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
-				byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
-				M, F, A, T, A, L, byte(0x01), byte(lPwm), R, byte(0x01), byte(rPwm), A, G, E, byte(0x00) };
-
-			for (int i = 3; i < 34; i++){
-				checksum += requestPacket[i];
-			}
-			checksum = 0xFF - (checksum & 0x00FF);
-
-			requestPacket[34] = byte(checksum);
-			Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
-			std::cout << "go forward";
-		}
-
-		// go back command
-
-		if (command == 2){
-			byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
-				robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
-				robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
-				byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
-				M, F, A, T, A, L, byte(0x02), byte(lPwm), R, byte(0x02), byte(rPwm), A, G, E, byte(0x00) };
-
-			for (int i = 3; i < 34; i++){
-				checksum += requestPacket[i];
-			}
-			checksum = 0xFF - (checksum & 0x00FF);
-
-			requestPacket[34] = byte(checksum);
-			Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
-			std::cout << "go back";
-		}
-
-		if (!Ret){
-			printf("SEND FAILED\n");
-			CloseHandle(arduino);
-			system("PAUSE");
-			exit(0);
-		}
+		sentPacket(command);
 
 	}
 	//	printf("FINISH\n");
