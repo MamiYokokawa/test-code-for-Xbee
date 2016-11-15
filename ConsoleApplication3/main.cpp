@@ -36,13 +36,14 @@ void sentAigamoCommand(int command){
 	DWORD dwErrorMask;
 	byte checksum = 0;
 
-	//パケット
+	//パケット生成
 	byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
 		robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
 		robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
 		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
 		M, F, A, T, A, L, 1, lPwm[byte(command)], R, 1, rPwm[byte(command)], A, G, E, byte(0x00) };
 
+	//チェックサムの計算
 	for (int i = 3; i < 34; i++){
 		checksum += requestPacket[i];
 	}
