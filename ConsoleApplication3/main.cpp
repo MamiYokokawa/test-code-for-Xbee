@@ -42,7 +42,7 @@ void sentAigamoCommand(int command){
 		robotAddr[robotNumber][0], robotAddr[robotNumber][1], robotAddr[robotNumber][2], robotAddr[robotNumber][3],
 		robotAddr[robotNumber][4], robotAddr[robotNumber][5], robotAddr[robotNumber][6], robotAddr[robotNumber][7],
 		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
-		M, F, A, T, A, L, 1, lPwm[byte(command)], R, 1, rPwm[byte(command)], A, G, E, byte(0x00) };
+		M, F, A, T, A, L, 1, lPwm[command], R, 1, rPwm[command], A, G, E, byte(0x00) };
 
 	//チェックサムの計算
 	for (int i = 3; i < 34; i++){
@@ -174,6 +174,7 @@ void main(void){
 		exit(0);
 	}
 
+	//操縦するロボット番号の入力
 	printf("What's robot number?\n");
 	std::cin >> robotNumber;
 	printf("coneccts no.%d\n", robotNumber);
