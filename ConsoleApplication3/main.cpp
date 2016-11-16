@@ -25,8 +25,8 @@ S = byte(0x53), T = byte(0x54), U = byte(0x55), V = byte(0x56), W = byte(0x57), 
 Y = byte(0x59), Z = byte(0x5a);
 
 //モードごとのleftとrightのpwm
-byte lPwm[] = { byte(0x20), byte(0x10), byte(0x08), byte(0x20), byte(0x20), byte(0x00) };
-byte rPwm[] = { byte(0x20), byte(0x20), byte(0x20), byte(0x10), byte(0x08), byte(0x00) };
+byte lPwm[] = {byte(0x00), byte(0x20), byte(0x20), byte(0x20), byte(0x20), byte(0x10), byte(0x10), byte(0x10), byte(0x0c),byte(0x0c) };
+byte rPwm[] = {byte(0x00), byte(0x20), byte(0x10), byte(0x0c), byte(0x08), byte(0x10), byte(0x0c), byte(0x08), byte(0x0c),byte(0x08) };
 
 //パケット作成・送信
 //command:シーケンス番号0～5
@@ -65,19 +65,17 @@ void sentAigamoCommand(int command){
 //マニュアルモードに変更コマンドの送信
 //8:スタンバイ
 //9:マニュアル
-void sentManualCommand(int command){
+void sentManualCommand(byte command){
 
 	DWORD dwSendSize;
 	DWORD dwErrorMask;
 	byte checksum = 0;
 
-	byte mode = byte(command) - 0x08; //変更モード
-
 	//パケット生成
 	byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1A), byte(0x10), byte(0x01),
 		robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
 		robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
-		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S, C, F, A, T, A, mode, A, G, E, byte(0x00) };
+		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S, C, F, A, T, A, command, A, G, E, byte(0x00) };
 
 	//チェックサムの計算
 	for (int i = 3; i < 29; i++){
@@ -166,7 +164,7 @@ void main(void){
 	//----------送信----------------
 
 	//1.ポートをオープン
-	arduino = CreateFile("COM5", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	arduino = CreateFile("COM4", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	//2014/01/22追記　これでつながらない場合には"\\\\.\\COM7"とするとつながるかもしれません。
 
 	if (arduino == INVALID_HANDLE_VALUE){
@@ -210,21 +208,27 @@ void main(void){
 		}
 		//4.送信
 		char id = A;
-		int command;
+		char command;
 
 		std::cin >> command;
 
 		//マニュアルモードに変更コマンドの送信
-		//8:スタンバイ
-		//9:マニュアル
-		if (command == 8 || command == 9 ){
-			sentManualCommand(command);
+		//s:スタンバイ
+		//m:マニュアル
+		if (command == 's'){
+			sentManualCommand(byte(0x00));
+			printf("%c", command);
+		}
+		else if(command == 'm'){
+			sentManualCommand(byte(0x01));
 		}
 		//パケット作成・送信
 		//command:シーケンス番号0～5
-		else{
-			sentAigamoCommand(command);
+		else if(command >= '0' && command <= '9'){
+			sentAigamoCommand(int(command-'0'));
+			printf("left:%d, right:%d\n", lPwm[int(command-'0')], rPwm[int(command-'0')]);
 		}
+		printf("next mode ->");
 	}
 	//	printf("FINISH\n");
 		CloseHandle(arduino);
