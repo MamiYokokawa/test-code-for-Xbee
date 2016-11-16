@@ -223,7 +223,7 @@ void main(void){
 			sentManualCommand(byte(0x01));
 		}
 		//パケット作成・送信
-		//command:シーケンス番号0～5
+		//command:シーケンス番号0～9
 		else if(command >= '0' && command <= '9'){
 			sentAigamoCommand(int(command-'0'));
 			printf("left:%d, right:%d\n", lPwm[int(command-'0')], rPwm[int(command-'0')]);
