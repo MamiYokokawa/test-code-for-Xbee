@@ -10,9 +10,9 @@ HANDLE arduino;
 /*
 //ロボットはマニュアルモードの際のパケットを利用し走行させる。
 //入力コマンド
-//0～5:マニュアルモード時の走行コマンド
-//8:スタンバイモード
-//9:マニュアルモード
+//0～9:マニュアルモード時の走行コマンド
+//s:スタンバイモード
+//m:マニュアルモード
 */
 
 //送信先のXbeeのアドレス
@@ -217,10 +217,11 @@ void main(void){
 		//m:マニュアル
 		if (command == 's'){
 			sentManualCommand(byte(0x00));
-			printf("%c", command);
+			printf("stand by mode\n");
 		}
 		else if(command == 'm'){
 			sentManualCommand(byte(0x01));
+			printf("mannual mode\n");
 		}
 		//パケット作成・送信
 		//command:シーケンス番号0～9
