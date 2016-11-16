@@ -4,9 +4,11 @@
 #include < locale.h >
 #include <iostream>
 
+#include "robotNumber.h"//送信先のXbeeのアドレス
+
 bool Ret;
 HANDLE arduino;
-
+int robotNumber;
 /*
 //ロボットはマニュアルモードの際のパケットを利用し走行させる。
 //入力コマンド
@@ -15,8 +17,7 @@ HANDLE arduino;
 //m:マニュアルモード
 */
 
-//送信先のXbeeのアドレス
-byte const robotAddr[] = { byte(0x00), byte(0x13), byte(0xA2), byte(0x00), byte(0x40), byte(0x99), byte(0x37), byte(0x7A) };
+
 //各文字バイト
 byte const A = byte(0x41), B = byte(0x42), C = byte(0x43), D = byte(0x44), E = byte(0x45), F = byte(0x46),
 G = byte(0x47), H = byte(0x48), I = byte(0x49), J = byte(0x4a), K = byte(0x4b), L = byte(0x4c),
@@ -38,8 +39,8 @@ void sentAigamoCommand(int command){
 
 	//パケット生成
 	byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
-		robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
-		robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
+		robotAddr[robotNumber][0], robotAddr[robotNumber][1], robotAddr[robotNumber][2], robotAddr[robotNumber][3],
+		robotAddr[robotNumber][4], robotAddr[robotNumber][5], robotAddr[robotNumber][6], robotAddr[robotNumber][7],
 		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
 		M, F, A, T, A, L, 1, lPwm[byte(command)], R, 1, rPwm[byte(command)], A, G, E, byte(0x00) };
 
@@ -73,8 +74,8 @@ void sentManualCommand(byte command){
 
 	//パケット生成
 	byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1A), byte(0x10), byte(0x01),
-		robotAddr[0], robotAddr[1], robotAddr[2], robotAddr[3],
-		robotAddr[4], robotAddr[5], robotAddr[6], robotAddr[7],
+		robotAddr[robotNumber][0], robotAddr[robotNumber][1], robotAddr[robotNumber][2], robotAddr[robotNumber][3],
+		robotAddr[robotNumber][4], robotAddr[robotNumber][5], robotAddr[robotNumber][6], robotAddr[robotNumber][7],
 		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S, C, F, A, T, A, command, A, G, E, byte(0x00) };
 
 	//チェックサムの計算
@@ -172,6 +173,11 @@ void main(void){
 		system("PAUSE");
 		exit(0);
 	}
+
+	printf("What's robot number?\n");
+	std::cin >> robotNumber;
+	printf("coneccts no.%d\n", robotNumber);
+	robotNumber--;
 
 	while (1){
 		//2.送受信バッファ初期化
