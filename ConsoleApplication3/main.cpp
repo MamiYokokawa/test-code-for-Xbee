@@ -4,54 +4,54 @@
 #include < locale.h >
 #include <iostream>
 
-#include "robotNumber.h"//‘—Mæ‚ÌXbee‚ÌƒAƒhƒŒƒX
+#include "robotNumber.h"//é€ä¿¡å…ˆã®Xbeeã®ã‚¢ãƒ‰ãƒ¬ã‚¹
 
 bool Ret;
 HANDLE arduino;
 int robotNumber;
 /*
-//ƒƒ{ƒbƒg‚Íƒ}ƒjƒ…ƒAƒ‹ƒ‚[ƒh‚ÌÛ‚ÌƒpƒPƒbƒg‚ğ—˜—p‚µ‘–s‚³‚¹‚éB
-//“ü—ÍƒRƒ}ƒ“ƒh
-//0`9:ƒ}ƒjƒ…ƒAƒ‹ƒ‚[ƒh‚Ì‘–sƒRƒ}ƒ“ƒh
-//s:ƒXƒ^ƒ“ƒoƒCƒ‚[ƒh
-//m:ƒ}ƒjƒ…ƒAƒ‹ƒ‚[ƒh
+//ãƒ­ãƒœãƒƒãƒˆã¯ãƒãƒ‹ãƒ¥ã‚¢ãƒ«ãƒ¢ãƒ¼ãƒ‰ã®éš›ã®ãƒ‘ã‚±ãƒƒãƒˆã‚’åˆ©ç”¨ã—èµ°è¡Œã•ã›ã‚‹ã€‚
+//å…¥åŠ›ã‚³ãƒãƒ³ãƒ‰
+//0ï½9:ãƒãƒ‹ãƒ¥ã‚¢ãƒ«ãƒ¢ãƒ¼ãƒ‰æ™‚ã®èµ°è¡Œã‚³ãƒãƒ³ãƒ‰
+//s:ã‚¹ã‚¿ãƒ³ãƒã‚¤ãƒ¢ãƒ¼ãƒ‰
+//m:ãƒãƒ‹ãƒ¥ã‚¢ãƒ«ãƒ¢ãƒ¼ãƒ‰
 */
 
 
-//Še•¶šƒoƒCƒg
+//å„æ–‡å­—ãƒã‚¤ãƒˆ
 byte const A = byte(0x41), B = byte(0x42), C = byte(0x43), D = byte(0x44), E = byte(0x45), F = byte(0x46),
 G = byte(0x47), H = byte(0x48), I = byte(0x49), J = byte(0x4a), K = byte(0x4b), L = byte(0x4c),
 M = byte(0x4d), N = byte(0x4e), O = byte(0x4f), P = byte(0x50), Q = byte(0x51), R = byte(0x52),
 S = byte(0x53), T = byte(0x54), U = byte(0x55), V = byte(0x56), W = byte(0x57), X = byte(0x58),
 Y = byte(0x59), Z = byte(0x5a);
 
-//ƒ‚[ƒh‚²‚Æ‚Ìleft‚Æright‚Ìpwm
+//ã‚³ãƒãƒ³ãƒ‰ã”ã¨ã®leftã¨rightã®pwm
 byte lPwm[] = {byte(0x00), byte(0x20), byte(0x20), byte(0x20), byte(0x20), byte(0x10), byte(0x10), byte(0x10), byte(0x0c),byte(0x0c) };
 byte rPwm[] = {byte(0x00), byte(0x20), byte(0x10), byte(0x0c), byte(0x08), byte(0x10), byte(0x0c), byte(0x08), byte(0x0c),byte(0x08) };
 
-//ƒpƒPƒbƒgì¬E‘—M
-//command:ƒV[ƒPƒ“ƒX”Ô†0`5
+//ãƒ‘ã‚±ãƒƒãƒˆä½œæˆãƒ»é€ä¿¡
+//command:ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç•ªå·0ï½9
 void sentAigamoCommand(int command){
 
 	DWORD dwSendSize;
 	DWORD dwErrorMask;
 	byte checksum = 0;
 
-	//ƒpƒPƒbƒg¶¬
+	//ãƒ‘ã‚±ãƒƒãƒˆç”Ÿæˆ
 	byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1F), byte(0x10), byte(0x01),
 		robotAddr[robotNumber][0], robotAddr[robotNumber][1], robotAddr[robotNumber][2], robotAddr[robotNumber][3],
 		robotAddr[robotNumber][4], robotAddr[robotNumber][5], robotAddr[robotNumber][6], robotAddr[robotNumber][7],
 		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S,
 		M, F, A, T, A, L, 1, lPwm[command], R, 1, rPwm[command], A, G, E, byte(0x00) };
 
-	//ƒ`ƒFƒbƒNƒTƒ€‚ÌŒvZ
+	//ãƒã‚§ãƒƒã‚¯ã‚µãƒ ã®è¨ˆç®—
 	for (int i = 3; i < 34; i++){
 		checksum += requestPacket[i];
 	}
 	checksum = 0xFF - (checksum & 0x00FF);
 	requestPacket[34] = byte(checksum);
 
-	//ƒpƒPƒbƒg‚Ì‘—M
+	//ãƒ‘ã‚±ãƒƒãƒˆã®é€ä¿¡
 	Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
 
 	if (!Ret){
@@ -63,29 +63,29 @@ void sentAigamoCommand(int command){
 
 }
 
-//ƒ}ƒjƒ…ƒAƒ‹ƒ‚[ƒh‚É•ÏXƒRƒ}ƒ“ƒh‚Ì‘—M
-//8:ƒXƒ^ƒ“ƒoƒC
-//9:ƒ}ƒjƒ…ƒAƒ‹
+//ãƒãƒ‹ãƒ¥ã‚¢ãƒ«ãƒ¢ãƒ¼ãƒ‰ã«å¤‰æ›´ã‚³ãƒãƒ³ãƒ‰ã®é€ä¿¡
+//0:ã‚¹ã‚¿ãƒ³ãƒã‚¤
+//1:ãƒãƒ‹ãƒ¥ã‚¢ãƒ«
 void sentManualCommand(byte command){
 
 	DWORD dwSendSize;
 	DWORD dwErrorMask;
 	byte checksum = 0;
 
-	//ƒpƒPƒbƒg¶¬
+	//ãƒ‘ã‚±ãƒƒãƒˆç”Ÿæˆ
 	byte requestPacket[] = { byte(0x7E), byte(0x00), byte(0x1A), byte(0x10), byte(0x01),
 		robotAddr[robotNumber][0], robotAddr[robotNumber][1], robotAddr[robotNumber][2], robotAddr[robotNumber][3],
 		robotAddr[robotNumber][4], robotAddr[robotNumber][5], robotAddr[robotNumber][6], robotAddr[robotNumber][7],
 		byte(0xFF), byte(0xFE), byte(0x00), byte(0x00), A, G, S, C, F, A, T, A, command, A, G, E, byte(0x00) };
 
-	//ƒ`ƒFƒbƒNƒTƒ€‚ÌŒvZ
+	//ãƒã‚§ãƒƒã‚¯ã‚µãƒ ã®è¨ˆç®—
 	for (int i = 3; i < 29; i++){
 		checksum += requestPacket[i];
 	}
 	checksum = 0xFF - (checksum & 0x00FF);
 	requestPacket[29] = byte(checksum);
 
-	//ƒpƒPƒbƒg‚Ì‘—M
+	//ãƒ‘ã‚±ãƒƒãƒˆã®é€ä¿¡
 	Ret = WriteFile(arduino, requestPacket, sizeof(requestPacket), &dwSendSize, NULL);
 
 	if (!Ret){
@@ -100,20 +100,20 @@ void sentManualCommand(byte command){
 void main(void){
 	BYTE data = 1;
 	/*
-	//----------óM----------------
-	//----------óM----------------
-	//----------óM----------------
+	//----------å—ä¿¡----------------
+	//----------å—ä¿¡----------------
+	//----------å—ä¿¡----------------
 	setlocale(LC_ALL, "japanese");
-	//1.ƒ|[ƒg‚ğƒI[ƒvƒ“
+	//1.ãƒãƒ¼ãƒˆã‚’ã‚ªãƒ¼ãƒ—ãƒ³
 	arduino = CreateFile("COM3", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	//2014/01/22’Ç‹L@‚±‚ê‚Å‚Â‚È‚ª‚ç‚È‚¢ê‡‚É‚Í"\\\\.\\COM7"‚Æ‚·‚é‚Æ‚Â‚È‚ª‚é‚©‚à‚µ‚ê‚Ü‚¹‚ñB
+	//2014/01/22è¿½è¨˜ã€€ã“ã‚Œã§ã¤ãªãŒã‚‰ãªã„å ´åˆã«ã¯"\\\\.\\COM7"ã¨ã™ã‚‹ã¨ã¤ãªãŒã‚‹ã‹ã‚‚ã—ã‚Œã¾ã›ã‚“ã€‚
 
 	if (arduino == INVALID_HANDLE_VALUE){
 		printf("PORT COULD NOT OPEN\n");
 		system("PAUSE");
 		exit(0);
 	}
-	//2.‘—óMƒoƒbƒtƒ@‰Šú‰»
+	//2.é€å—ä¿¡ãƒãƒƒãƒ•ã‚¡åˆæœŸåŒ–
 	Ret = SetupComm(arduino, 1024, 1024);
 	if (!Ret){
 		printf("SET UP FAILED\n");
@@ -127,7 +127,7 @@ void main(void){
 		CloseHandle(arduino);
 		exit(0);
 	}
-	//3.Šî–{’ÊMğŒ‚Ìİ’è
+	//3.åŸºæœ¬é€šä¿¡æ¡ä»¶ã®è¨­å®š
 	DCB dcb;
 	GetCommState(arduino, &dcb);
 	dcb.DCBlength = sizeof(DCB);
@@ -144,13 +144,13 @@ void main(void){
 		system("PAUSE");
 		exit(0);
 	}
-	//3.5óM
+	//3.5å—ä¿¡
 	
-	DWORD dwErrors;  // ƒGƒ‰[î•ñ 
-	COMSTAT ComStat; // ƒfƒoƒCƒX‚Ìó‘Ô 
-	DWORD dwCount;   // óMƒf[ƒ^‚ÌƒoƒCƒg” 
-	char* pszBuf[100];    // “Ç‚İo‚µƒf[ƒ^ƒoƒbƒtƒ@ 
-	DWORD dwRead;    // ƒ|[ƒg‚©‚ç“Ç‚İo‚µ‚½ƒoƒCƒg” 
+	DWORD dwErrors;  // ã‚¨ãƒ©ãƒ¼æƒ…å ± 
+	COMSTAT ComStat; // ãƒ‡ãƒã‚¤ã‚¹ã®çŠ¶æ…‹ 
+	DWORD dwCount;   // å—ä¿¡ãƒ‡ãƒ¼ã‚¿ã®ãƒã‚¤ãƒˆæ•° 
+	char* pszBuf[100];    // èª­ã¿å‡ºã—ãƒ‡ãƒ¼ã‚¿ãƒãƒƒãƒ•ã‚¡ 
+	DWORD dwRead;    // ãƒãƒ¼ãƒˆã‹ã‚‰èª­ã¿å‡ºã—ãŸãƒã‚¤ãƒˆæ•° 
 
 	while (1){
 	ClearCommError(arduino, &dwErrors, &ComStat);
@@ -160,13 +160,13 @@ void main(void){
 	}
 
 	*/
-	//----------‘—M----------------
-	//----------‘—M----------------
-	//----------‘—M----------------
+	//----------é€ä¿¡----------------
+	//----------é€ä¿¡----------------
+	//----------é€ä¿¡----------------
 
-	//1.ƒ|[ƒg‚ğƒI[ƒvƒ“
+	//1.ãƒãƒ¼ãƒˆã‚’ã‚ªãƒ¼ãƒ—ãƒ³
 	arduino = CreateFile("COM4", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	//2014/01/22’Ç‹L@‚±‚ê‚Å‚Â‚È‚ª‚ç‚È‚¢ê‡‚É‚Í"\\\\.\\COM7"‚Æ‚·‚é‚Æ‚Â‚È‚ª‚é‚©‚à‚µ‚ê‚Ü‚¹‚ñB
+	//2014/01/22è¿½è¨˜ã€€ã“ã‚Œã§ã¤ãªãŒã‚‰ãªã„å ´åˆã«ã¯"\\\\.\\COM7"ã¨ã™ã‚‹ã¨ã¤ãªãŒã‚‹ã‹ã‚‚ã—ã‚Œã¾ã›ã‚“ã€‚
 
 	if (arduino == INVALID_HANDLE_VALUE){
 		printf("PORT COULD NOT OPEN\n");
@@ -174,14 +174,14 @@ void main(void){
 		exit(0);
 	}
 
-	//‘€c‚·‚éƒƒ{ƒbƒg”Ô†‚Ì“ü—Í
+	//æ“ç¸¦ã™ã‚‹ãƒ­ãƒœãƒƒãƒˆç•ªå·ã®å…¥åŠ›
 	printf("What's robot number?\n");
 	std::cin >> robotNumber;
 	printf("coneccts no.%d\n", robotNumber);
 	robotNumber--;
 
 	while (1){
-		//2.‘—óMƒoƒbƒtƒ@‰Šú‰»
+		//2.é€å—ä¿¡ãƒãƒƒãƒ•ã‚¡åˆæœŸåŒ–
 		Ret = SetupComm(arduino, 1024, 1024);
 		if (!Ret){
 			printf("SET UP FAILED\n");
@@ -196,7 +196,7 @@ void main(void){
 			exit(0);
 		}
 
-		//3.Šî–{’ÊMğŒ‚Ìİ’è
+		//3.åŸºæœ¬é€šä¿¡æ¡ä»¶ã®è¨­å®š
 		DCB dcb;
 		GetCommState(arduino, &dcb);
 		dcb.DCBlength = sizeof(DCB);
@@ -213,15 +213,15 @@ void main(void){
 			system("PAUSE");
 			exit(0);
 		}
-		//4.‘—M
+		//4.é€ä¿¡
 		char id = A;
 		char command;
 
 		std::cin >> command;
 
-		//ƒ}ƒjƒ…ƒAƒ‹ƒ‚[ƒh‚É•ÏXƒRƒ}ƒ“ƒh‚Ì‘—M
-		//s:ƒXƒ^ƒ“ƒoƒC
-		//m:ƒ}ƒjƒ…ƒAƒ‹
+		//ãƒãƒ‹ãƒ¥ã‚¢ãƒ«ãƒ¢ãƒ¼ãƒ‰ã«å¤‰æ›´ã‚³ãƒãƒ³ãƒ‰ã®é€ä¿¡
+		//s:ã‚¹ã‚¿ãƒ³ãƒã‚¤
+		//m:ãƒãƒ‹ãƒ¥ã‚¢ãƒ«
 		if (command == 's'){
 			sentManualCommand(byte(0x00));
 			printf("stand by mode\n");
@@ -230,8 +230,8 @@ void main(void){
 			sentManualCommand(byte(0x01));
 			printf("mannual mode\n");
 		}
-		//ƒpƒPƒbƒgì¬E‘—M
-		//command:ƒV[ƒPƒ“ƒX”Ô†0`9
+		//ãƒ‘ã‚±ãƒƒãƒˆä½œæˆãƒ»é€ä¿¡
+		//command:ã‚·ãƒ¼ã‚±ãƒ³ã‚¹ç•ªå·0ï½9
 		else if(command >= '0' && command <= '9'){
 			sentAigamoCommand(int(command-'0'));
 			printf("left:%d, right:%d\n", lPwm[int(command-'0')], rPwm[int(command-'0')]);
